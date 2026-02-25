@@ -22,7 +22,7 @@
         // Icon Component to handle Lucide icons in browser
         const Icon = ({ name, size = 18, className = "" }) => {
             useEffect(() => {
-                if (window.lucide) {
+                if (window.lucide && window.lucide.createIcons) {
                     window.lucide.createIcons();
                 }
             }, [name]);
@@ -105,6 +105,8 @@
             const [selectedUser, setSelectedUser] = useState(null);
             const [isDragOver, setIsDragOver] = useState(false);
             const [activeTab, setActiveTab] = useState('gap');
+            const [error, setError] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
 
             const parseCSVRow = (row) => {
                 const result = [];
@@ -114,105 +116,150 @@
                     if (row[i] === '"') {
                         inQuotes = !inQuotes;
                     } else if (row[i] === ',' && !inQuotes) {
-                        result.push(row.substring(startValueIndex, i).trim().replace(/^"|"$/g, ''));
+                        result.push(row.substring(startValueIndex, i).trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                         startValueIndex = i + 1;
                     }
                 }
-                result.push(row.substring(startValueIndex).trim().replace(/^"|"$/g, ''));
+                result.push(row.substring(startValueIndex).trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                 return result;
             };
 
             const processFile = (file) => {
+                if (!file) return;
+                setIsProcessing(true);
+                setError(null);
+
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    const text = event.target.result;
-                    const rows = text.split(/\r?\n/).filter(row => row.trim());
-                    if (rows.length < 2) return;
-
-                    const headers = parseCSVRow(rows[0]);
-                    const rawData = rows.slice(1).map(row => {
-                        const values = parseCSVRow(row);
-                        const obj = {};
-                        headers.forEach((header, i) => {
-                            if (header) obj[header] = values[i] || '';
-                        });
-                        return obj;
-                    });
-
-                    const usersMap = {};
-                    rawData.forEach(record => {
-                        const email = record.Email || record.email;
-                        if (!email) return;
+                    try {
+                        let text = event.target.result;
                         
-                        if (!usersMap[email]) {
-                            usersMap[email] = {
-                                name: record['Full name'] || record.name || email,
-                                email: email,
-                                center: record.Center || record.center || 'N/A',
-                                roleInFile: record.Role || record.role || '-',
-                                courses: []
-                            };
+                        // Strip Byte Order Mark (BOM) if present
+                        if (text.charCodeAt(0) === 0xFEFF) {
+                            text = text.substring(1);
                         }
+
+                        const rows = text.split(/\r?\n/).filter(row => row.trim());
+                        if (rows.length < 2) {
+                            throw new Error("The file appears to be empty or missing data rows.");
+                        }
+
+                        const headers = parseCSVRow(rows[0]).map(h => h.trim());
                         
-                        usersMap[email].courses.push({
-                            name: record['Course name'] || '',
-                            progress: record['Course progress'] || '',
-                            score: record['Score'] || '0%',
-                            completionPerc: record['Course completion %'] || '0%',
-                            completed: record.Completed || record.completed || '-'
+                        // Check for essential headers
+                        const required = ['Email', 'Course name', 'Course progress'];
+                        const missing = required.filter(req => !headers.some(h => h.toLowerCase() === req.toLowerCase()));
+                        
+                        if (missing.length > 0) {
+                            throw new Error(`Missing required columns: ${missing.join(', ')}. Check your CSV headers.`);
+                        }
+
+                        const rawData = rows.slice(1).map((row, index) => {
+                            const values = parseCSVRow(row);
+                            const obj = {};
+                            headers.forEach((header, i) => {
+                                if (header) obj[header] = values[i] || '';
+                            });
+                            return obj;
                         });
-                    });
 
-                    const processedUsers = Object.values(usersMap).map(user => {
-                        let detectedRole = 'GLOBAL_BASELINE';
-                        let inferred = false;
+                        const usersMap = {};
+                        rawData.forEach(record => {
+                            // Case-insensitive header matching
+                            const getVal = (key) => {
+                                const actualKey = Object.keys(record).find(k => k.toLowerCase() === key.toLowerCase());
+                                return actualKey ? record[actualKey] : null;
+                            };
 
-                        const explicitRole = user.roleInFile.trim();
-                        if (explicitRole && explicitRole !== '-') {
-                            const match = Object.keys(ROLES).find(key => 
-                                ROLES[key].label.toLowerCase() === explicitRole.toLowerCase() ||
-                                explicitRole.toLowerCase().includes(ROLES[key].id.toLowerCase())
-                            );
-                            if (match) detectedRole = match;
-                        } else {
-                            inferred = true;
-                            const courseNames = user.courses.map(c => c.name.toLowerCase()).join(' ');
-                            for (const [key, role] of Object.entries(ROLES)) {
-                                if (role.inference && role.inference.some(inf => courseNames.includes(inf.toLowerCase()))) {
-                                    detectedRole = key;
-                                    break;
+                            const email = getVal('Email');
+                            if (!email) return;
+                            
+                            if (!usersMap[email]) {
+                                usersMap[email] = {
+                                    name: getVal('Full name') || getVal('Name') || email,
+                                    email: email,
+                                    center: getVal('Center') || 'N/A',
+                                    roleInFile: getVal('Role') || '-',
+                                    courses: []
+                                };
+                            }
+                            
+                            usersMap[email].courses.push({
+                                name: getVal('Course name') || '',
+                                progress: getVal('Course progress') || '',
+                                score: getVal('Score') || '0%',
+                                completionPerc: getVal('Course completion %') || '0%',
+                                completed: getVal('Completed') || '-'
+                            });
+                        });
+
+                        const processedUsers = Object.values(usersMap).map(user => {
+                            let detectedRole = 'GLOBAL_BASELINE';
+                            let inferred = false;
+
+                            const explicitRole = user.roleInFile.trim();
+                            if (explicitRole && explicitRole !== '-') {
+                                const match = Object.keys(ROLES).find(key => 
+                                    ROLES[key].label.toLowerCase() === explicitRole.toLowerCase() ||
+                                    explicitRole.toLowerCase().includes(ROLES[key].id.toLowerCase())
+                                );
+                                if (match) detectedRole = match;
+                            } else {
+                                inferred = true;
+                                const courseNames = user.courses.map(c => c.name.toLowerCase()).join(' ');
+                                for (const [key, role] of Object.entries(ROLES)) {
+                                    if (role.inference && role.inference.some(inf => courseNames.includes(inf.toLowerCase()))) {
+                                        detectedRole = key;
+                                        break;
+                                    }
                                 }
                             }
-                        }
 
-                        const roleConfig = ROLES[detectedRole];
-                        const completedCourses = user.courses
-                            .filter(c => ['passed', 'completed'].includes(c.progress.toLowerCase()));
-                        
-                        const completedCourseNames = completedCourses.map(c => c.name.toLowerCase());
+                            const roleConfig = ROLES[detectedRole];
+                            const completedCourses = user.courses
+                                .filter(c => {
+                                    const p = (c.progress || '').toLowerCase();
+                                    return p === 'passed' || p === 'completed';
+                                });
+                            
+                            const completedCourseNames = completedCourses.map(c => c.name.toLowerCase());
 
-                        const requirements = roleConfig.keywords.map(kw => {
-                            const isDone = completedCourseNames.some(cn => cn.includes(kw.toLowerCase()));
-                            return { keyword: kw, isDone };
+                            const requirements = roleConfig.keywords.map(kw => {
+                                const isDone = completedCourseNames.some(cn => cn.includes(kw.toLowerCase()));
+                                return { keyword: kw, isDone };
+                            });
+
+                            const completedCount = requirements.filter(r => r.isDone).length;
+                            const percentage = Math.round((completedCount / requirements.length) * 100);
+
+                            return {
+                                ...user,
+                                roleKey: detectedRole,
+                                roleLabel: roleConfig.label,
+                                isInferred: inferred,
+                                requirements,
+                                fullHistory: completedCourses.sort((a, b) => b.completed.localeCompare(a.completed)),
+                                percentage,
+                                completedCount,
+                                totalCount: requirements.length
+                            };
                         });
 
-                        const completedCount = requirements.filter(r => r.isDone).length;
-                        const percentage = Math.round((completedCount / requirements.length) * 100);
+                        if (processedUsers.length === 0) {
+                            throw new Error("No valid user records found in the file.");
+                        }
 
-                        return {
-                            ...user,
-                            roleKey: detectedRole,
-                            roleLabel: roleConfig.label,
-                            isInferred: inferred,
-                            requirements,
-                            fullHistory: completedCourses.sort((a, b) => b.completed.localeCompare(a.completed)),
-                            percentage,
-                            completedCount,
-                            totalCount: requirements.length
-                        };
-                    });
-
-                    setData(processedUsers);
+                        setData(processedUsers);
+                        setIsProcessing(false);
+                    } catch (err) {
+                        console.error("Processing Error:", err);
+                        setError(err.message);
+                        setIsProcessing(false);
+                    }
+                };
+                reader.onerror = () => {
+                    setError("Failed to read the file. Please try again.");
+                    setIsProcessing(false);
                 };
                 reader.readAsText(file);
             };
@@ -312,7 +359,17 @@
                             </div>
                         </header>
 
-                        {!data.length ? (
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 animate-in fade-in slide-in-from-top-2">
+                                <Icon name="alert-circle" size={20} className="shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-sm">Upload Error</p>
+                                    <p className="text-sm opacity-90">{error}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {!data.length && !isProcessing ? (
                             <div 
                                 onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
                                 onDragLeave={() => setIsDragOver(false)}
@@ -331,8 +388,14 @@
                                     <input type="file" accept=".csv" className="hidden" onChange={(e) => processFile(e.target.files[0])} />
                                 </label>
                             </div>
+                        ) : isProcessing ? (
+                            <div className="mt-20 flex flex-col items-center justify-center p-12 text-center">
+                                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                                <h2 className="text-xl font-semibold text-slate-700">Processing Data...</h2>
+                                <p className="text-slate-400 mt-2">Parsing roles and module history.</p>
+                            </div>
                         ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
                                 <div className="lg:col-span-2 space-y-4">
                                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                                         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -393,7 +456,7 @@
 
                                 <div className="lg:col-span-1">
                                     {selectedUser ? (
-                                        <div className="sticky top-8 space-y-4">
+                                        <div className="sticky top-8 space-y-4 animate-in slide-in-from-right-4">
                                             <div className="bg-white rounded-3xl shadow-lg border border-indigo-100 overflow-hidden">
                                                 <div className="p-6 text-center border-b border-slate-100">
                                                     <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 border-2 border-indigo-100 shadow-inner">
