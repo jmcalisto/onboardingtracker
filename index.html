@@ -1,528 +1,549 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Users, 
-  CheckCircle, 
-  XCircle, 
-  Search, 
-  ArrowRight, 
-  Filter, 
-  FileText, 
-  ChevronRight,
-  UserCheck,
-  GraduationCap,
-  Briefcase,
-  ShieldCheck,
-  TrendingUp,
-  History,
-  ClipboardCheck,
-  Calendar,
-  Award,
-  Download
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSE Onboarding Tracker</title>
+    <!-- React and Babel for browser-side JSX translation -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+    <div id="root"></div>
 
-const ROLES = {
-  GLOBAL_BASELINE: {
-    id: 'Baseline',
-    label: 'All Staff',
-    keywords: ['C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types']
-  },
-  TEACHER: {
-    id: 'Teacher',
-    label: 'Teacher',
-    keywords: [
-      'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-      'Learner Psychology', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09',
-      'Encounter Assessment', 'Encounter Structure', 'Encounter Planning', 'Encounter Feedback',
-      'Complementary Class Structure', 'Complementary Class Planning', 'Complementary Class Teaching', 'Complementary Class Feedback'
-    ],
-    inference: ['Encounter', 'Social Club', 'T08', 'T09', 'Complementary']
-  },
-  COACH: {
-    id: 'Coach',
-    label: 'Coach',
-    keywords: [
-      'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-      'Learner Psychology', 'T02', 'T03', 'T05', 'T06', 'T07', 'Welcome Call',
-      'First Lesson', 'Study Planner', 'Advising Sessions', 'Motivating Students',
-      'Customer Service', 'Follow Up', 'Phone Call', 'Booking Efficacy', 'Complaints'
-    ],
-    inference: ['Welcome Call', 'Study Planner', 'Booking Efficacy', 'Motivating']
-  },
-  CONSULTANT: {
-    id: 'Consultant',
-    label: 'Consultant',
-    keywords: [
-      'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-      'S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11',
-      'Production Presentation', 'Second Appointment', 'Referrals', 'Renewals', 'Complaints'
-    ],
-    inference: ['S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'Production Presentation']
-  },
-  CENTER_DIRECTOR: {
-    id: 'Center Director',
-    label: 'Center Director',
-    keywords: [
-      'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-      'S01', 'S02', 'S03', 'S04', 'GROW Model', 'KPIs', 'Delegating', '5Ps', 
-      'Time Management', 'Recruitment', 'Timetabling', 'Class Planning', 
-      'BI Tools', 'Action Planning', 'Quality Controller'
-    ],
-    inference: ['GROW Model', 'Sales Funnel', 'KPIs', 'Quality Controller']
-  },
-  SERVICE_MANAGER: {
-    id: 'Service Manager',
-    label: 'Service Manager',
-    keywords: [
-      'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-      'S01', 'S02', 'S03', 'S04', 'Quality Control', 'Training and Development', 
-      'Observations', 'Coaching Techniques', '5Ps', 'Delegating', 'Time Management', 
-      'Timetabling', 'Recruitment', 'Class Planning', 'BI Tools', 'Action Planning', 
-      'Customer Satisfaction Survey'
-    ],
-    inference: ['Timetabling Service Staff', 'Biannual Action Planning', 'Customer Satisfaction Survey']
-  }
-};
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
 
-const App = () => {
-  const [data, setData] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [activeTab, setActiveTab] = useState('gap');
+        // Icon Component to handle Lucide icons in browser
+        const Icon = ({ name, size = 18, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
 
-  const parseCSVRow = (row) => {
-    const result = [];
-    let startValueIndex = 0;
-    let inQuotes = false;
-    for (let i = 0; i < row.length; i++) {
-      if (row[i] === '"') {
-        inQuotes = !inQuotes;
-      } else if (row[i] === ',' && !inQuotes) {
-        result.push(row.substring(startValueIndex, i).trim().replace(/^"|"$/g, ''));
-        startValueIndex = i + 1;
-      }
-    }
-    result.push(row.substring(startValueIndex).trim().replace(/^"|"$/g, ''));
-    return result;
-  };
-
-  const processFile = (file) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result;
-      const rows = text.split(/\r?\n/).filter(row => row.trim());
-      if (rows.length < 2) return;
-
-      const headers = parseCSVRow(rows[0]);
-      const rawData = rows.slice(1).map(row => {
-        const values = parseCSVRow(row);
-        const obj = {};
-        headers.forEach((header, i) => {
-          if (header) obj[header] = values[i] || '';
-        });
-        return obj;
-      });
-
-      const usersMap = {};
-      rawData.forEach(record => {
-        const email = record.Email || record.email;
-        if (!email) return;
-        
-        if (!usersMap[email]) {
-          usersMap[email] = {
-            name: record['Full name'] || record.name || email,
-            email: email,
-            center: record.Center || record.center || 'N/A',
-            roleInFile: record.Role || record.role || '-',
-            courses: []
-          };
-        }
-        
-        usersMap[email].courses.push({
-          name: record['Course name'] || '',
-          progress: record['Course progress'] || '',
-          score: record['Score'] || '0%',
-          completionPerc: record['Course completion %'] || '0%',
-          completed: record.Completed || record.completed || '-'
-        });
-      });
-
-      const processedUsers = Object.values(usersMap).map(user => {
-        let detectedRole = 'GLOBAL_BASELINE';
-        let inferred = false;
-
-        const explicitRole = user.roleInFile.trim();
-        if (explicitRole && explicitRole !== '-') {
-          const match = Object.keys(ROLES).find(key => 
-            ROLES[key].label.toLowerCase() === explicitRole.toLowerCase() ||
-            explicitRole.toLowerCase().includes(ROLES[key].id.toLowerCase())
-          );
-          if (match) detectedRole = match;
-        } else {
-          inferred = true;
-          const courseNames = user.courses.map(c => c.name.toLowerCase()).join(' ');
-          for (const [key, role] of Object.entries(ROLES)) {
-            if (role.inference && role.inference.some(inf => courseNames.includes(inf.toLowerCase()))) {
-              detectedRole = key;
-              break;
-            }
-          }
-        }
-
-        const roleConfig = ROLES[detectedRole];
-        const completedCourses = user.courses
-          .filter(c => ['passed', 'completed'].includes(c.progress.toLowerCase()));
-        
-        const completedCourseNames = completedCourses.map(c => c.name.toLowerCase());
-
-        const requirements = roleConfig.keywords.map(kw => {
-          const isDone = completedCourseNames.some(cn => cn.includes(kw.toLowerCase()));
-          return { keyword: kw, isDone };
-        });
-
-        const completedCount = requirements.filter(r => r.isDone).length;
-        const percentage = Math.round((completedCount / requirements.length) * 100);
-
-        return {
-          ...user,
-          roleKey: detectedRole,
-          roleLabel: roleConfig.label,
-          isInferred: inferred,
-          requirements,
-          fullHistory: completedCourses.sort((a, b) => b.completed.localeCompare(a.completed)),
-          percentage,
-          completedCount,
-          totalCount: requirements.length
+            return (
+                <i 
+                    data-lucide={name} 
+                    style={{ width: size, height: size }} 
+                    className={`${className} inline-block`}
+                ></i>
+            );
         };
-      });
 
-      setData(processedUsers);
-    };
-    reader.readAsText(file);
-  };
+        const ROLES = {
+            GLOBAL_BASELINE: {
+                id: 'Baseline',
+                label: 'All Staff',
+                keywords: ['C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types']
+            },
+            TEACHER: {
+                id: 'Teacher',
+                label: 'Teacher',
+                keywords: [
+                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    'Learner Psychology', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09',
+                    'Encounter Assessment', 'Encounter Structure', 'Encounter Planning', 'Encounter Feedback',
+                    'Complementary Class Structure', 'Complementary Class Planning', 'Complementary Class Teaching', 'Complementary Class Feedback'
+                ],
+                inference: ['Encounter', 'Social Club', 'T08', 'T09', 'Complementary']
+            },
+            COACH: {
+                id: 'Coach',
+                label: 'Coach',
+                keywords: [
+                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    'Learner Psychology', 'T02', 'T03', 'T05', 'T06', 'T07', 'Welcome Call',
+                    'First Lesson', 'Study Planner', 'Advising Sessions', 'Motivating Students',
+                    'Customer Service', 'Follow Up', 'Phone Call', 'Booking Efficacy', 'Complaints'
+                ],
+                inference: ['Welcome Call', 'Study Planner', 'Booking Efficacy', 'Motivating']
+            },
+            CONSULTANT: {
+                id: 'Consultant',
+                label: 'Consultant',
+                keywords: [
+                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    'S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11',
+                    'Production Presentation', 'Second Appointment', 'Referrals', 'Renewals', 'Complaints'
+                ],
+                inference: ['S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'Production Presentation']
+            },
+            CENTER_DIRECTOR: {
+                id: 'Center Director',
+                label: 'Center Director',
+                keywords: [
+                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    'S01', 'S02', 'S03', 'S04', 'GROW Model', 'KPIs', 'Delegating', '5Ps', 
+                    'Time Management', 'Recruitment', 'Timetabling', 'Class Planning', 
+                    'BI Tools', 'Action Planning', 'Quality Controller'
+                ],
+                inference: ['GROW Model', 'Sales Funnel', 'KPIs', 'Quality Controller']
+            },
+            SERVICE_MANAGER: {
+                id: 'Service Manager',
+                label: 'Service Manager',
+                keywords: [
+                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    'S01', 'S02', 'S03', 'S04', 'Quality Control', 'Training and Development', 
+                    'Observations', 'Coaching Techniques', '5Ps', 'Delegating', 'Time Management', 
+                    'Timetabling', 'Recruitment', 'Class Planning', 'BI Tools', 'Action Planning', 
+                    'Customer Satisfaction Survey'
+                ],
+                inference: ['Timetabling Service Staff', 'Biannual Action Planning', 'Customer Satisfaction Survey']
+            }
+        };
 
-  const exportProcessedData = () => {
-    if (!data.length) return;
-    
-    const headers = ['Name', 'Email', 'Center', 'Role', 'Inferred', 'Completion %', 'Done', 'Required', 'Missing Modules'];
-    const rows = data.map(u => [
-      `"${u.name}"`,
-      `"${u.email}"`,
-      `"${u.center}"`,
-      `"${u.roleLabel}"`,
-      u.isInferred ? 'Yes' : 'No',
-      u.percentage,
-      u.completedCount,
-      u.totalCount,
-      `"${u.requirements.filter(r => !r.isDone).map(r => r.keyword).join(', ')}"`
-    ]);
+        const App = () => {
+            const [data, setData] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedUser, setSelectedUser] = useState(null);
+            const [isDragOver, setIsDragOver] = useState(false);
+            const [activeTab, setActiveTab] = useState('gap');
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `WSE_Onboarding_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+            const parseCSVRow = (row) => {
+                const result = [];
+                let startValueIndex = 0;
+                let inQuotes = false;
+                for (let i = 0; i < row.length; i++) {
+                    if (row[i] === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (row[i] === ',' && !inQuotes) {
+                        result.push(row.substring(startValueIndex, i).trim().replace(/^"|"$/g, ''));
+                        startValueIndex = i + 1;
+                    }
+                }
+                result.push(row.substring(startValueIndex).trim().replace(/^"|"$/g, ''));
+                return result;
+            };
 
-  const filteredUsers = useMemo(() => {
-    return data.filter(u => 
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.center.toLowerCase().includes(searchTerm.toLowerCase())
-    ).sort((a, b) => b.percentage - a.percentage);
-  }, [data, searchTerm]);
+            const processFile = (file) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    const rows = text.split(/\r?\n/).filter(row => row.trim());
+                    if (rows.length < 2) return;
 
-  const getPercentageColor = (p) => {
-    if (p === 100) return 'text-emerald-600 bg-emerald-50 border-emerald-100';
-    if (p > 70) return 'text-blue-600 bg-blue-50 border-blue-100';
-    if (p > 30) return 'text-amber-600 bg-amber-50 border-amber-100';
-    return 'text-slate-500 bg-slate-50 border-slate-100';
-  };
+                    const headers = parseCSVRow(rows[0]);
+                    const rawData = rows.slice(1).map(row => {
+                        const values = parseCSVRow(row);
+                        const obj = {};
+                        headers.forEach((header, i) => {
+                            if (header) obj[header] = values[i] || '';
+                        });
+                        return obj;
+                    });
 
-  const getProgressBarStyle = (p) => {
-    if (p === 100) return 'bg-emerald-500';
-    if (p > 70) return 'bg-blue-500';
-    if (p > 30) return 'bg-amber-500';
-    return 'bg-slate-300';
-  };
+                    const usersMap = {};
+                    rawData.forEach(record => {
+                        const email = record.Email || record.email;
+                        if (!email) return;
+                        
+                        if (!usersMap[email]) {
+                            usersMap[email] = {
+                                name: record['Full name'] || record.name || email,
+                                email: email,
+                                center: record.Center || record.center || 'N/A',
+                                roleInFile: record.Role || record.role || '-',
+                                courses: []
+                            };
+                        }
+                        
+                        usersMap[email].courses.push({
+                            name: record['Course name'] || '',
+                            progress: record['Course progress'] || '',
+                            score: record['Score'] || '0%',
+                            completionPerc: record['Course completion %'] || '0%',
+                            completed: record.Completed || record.completed || '-'
+                        });
+                    });
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-2 bg-indigo-600 rounded-lg text-white">
-                <ShieldCheck size={24} />
-              </div>
-              <h1 className="text-2xl font-bold tracking-tight">WSE Onboarding Tracker</h1>
-            </div>
-            <p className="text-slate-500">Staff Completion & Role Analysis Dashboard</p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search staff or center..."
-                className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-64 transition-all text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
-            </div>
-            
-            <div className="flex gap-2">
-              {data.length > 0 && (
-                <button 
-                  onClick={exportProcessedData}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-500 text-slate-600 hover:text-indigo-600 rounded-xl shadow-sm transition-all font-medium text-sm"
-                >
-                  <Download size={18} />
-                  Export Results
-                </button>
-              )}
-              <label className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md cursor-pointer transition-colors font-medium text-sm">
-                <FileText size={18} />
-                Upload CSV
-                <input type="file" accept=".csv" className="hidden" onChange={(e) => processFile(e.target.files[0])} />
-              </label>
-            </div>
-          </div>
-        </header>
+                    const processedUsers = Object.values(usersMap).map(user => {
+                        let detectedRole = 'GLOBAL_BASELINE';
+                        let inferred = false;
 
-        {!data.length ? (
-          <div 
-            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setIsDragOver(false); processFile(e.dataTransfer.files[0]); }}
-            className={`mt-20 flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-3xl transition-all ${isDragOver ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white shadow-sm'}`}
-          >
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-              <Users size={32} />
-            </div>
-            <h2 className="text-xl font-semibold mb-2 text-slate-700">No Data Uploaded</h2>
-            <p className="text-slate-400 text-center max-w-sm mb-6">
-              Drag and drop your LearnUpon CSV export here to generate the onboarding reports and identify staff roles.
-            </p>
-            <label className="px-6 py-3 bg-white border border-slate-200 hover:border-indigo-500 text-indigo-600 rounded-2xl shadow-sm cursor-pointer transition-all font-semibold">
-              Browse Files
-              <input type="file" accept=".csv" className="hidden" onChange={(e) => processFile(e.target.files[0])} />
-            </label>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                  <h3 className="font-bold flex items-center gap-2 text-sm">
-                    <Users size={18} className="text-indigo-600" />
-                    Staff List ({filteredUsers.length})
-                  </h3>
-                  <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                    Sorted by Completion
-                  </div>
-                </div>
+                        const explicitRole = user.roleInFile.trim();
+                        if (explicitRole && explicitRole !== '-') {
+                            const match = Object.keys(ROLES).find(key => 
+                                ROLES[key].label.toLowerCase() === explicitRole.toLowerCase() ||
+                                explicitRole.toLowerCase().includes(ROLES[key].id.toLowerCase())
+                            );
+                            if (match) detectedRole = match;
+                        } else {
+                            inferred = true;
+                            const courseNames = user.courses.map(c => c.name.toLowerCase()).join(' ');
+                            for (const [key, role] of Object.entries(ROLES)) {
+                                if (role.inference && role.inference.some(inf => courseNames.includes(inf.toLowerCase()))) {
+                                    detectedRole = key;
+                                    break;
+                                }
+                            }
+                        }
+
+                        const roleConfig = ROLES[detectedRole];
+                        const completedCourses = user.courses
+                            .filter(c => ['passed', 'completed'].includes(c.progress.toLowerCase()));
+                        
+                        const completedCourseNames = completedCourses.map(c => c.name.toLowerCase());
+
+                        const requirements = roleConfig.keywords.map(kw => {
+                            const isDone = completedCourseNames.some(cn => cn.includes(kw.toLowerCase()));
+                            return { keyword: kw, isDone };
+                        });
+
+                        const completedCount = requirements.filter(r => r.isDone).length;
+                        const percentage = Math.round((completedCount / requirements.length) * 100);
+
+                        return {
+                            ...user,
+                            roleKey: detectedRole,
+                            roleLabel: roleConfig.label,
+                            isInferred: inferred,
+                            requirements,
+                            fullHistory: completedCourses.sort((a, b) => b.completed.localeCompare(a.completed)),
+                            percentage,
+                            completedCount,
+                            totalCount: requirements.length
+                        };
+                    });
+
+                    setData(processedUsers);
+                };
+                reader.readAsText(file);
+            };
+
+            const exportProcessedData = () => {
+                if (!data.length) return;
                 
-                <div className="divide-y divide-slate-100 max-h-[700px] overflow-y-auto">
-                  {filteredUsers.map((user) => (
-                    <div 
-                      key={user.email}
-                      onClick={() => { setSelectedUser(user); setActiveTab('gap'); }}
-                      className={`px-6 py-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors group ${selectedUser?.email === user.email ? 'bg-indigo-50/50' : ''}`}
-                    >
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm shrink-0">
-                        {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold truncate text-sm">{user.name}</h4>
-                          {user.isInferred && (
-                            <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter" title="Role guessed based on module history">
-                              Inferred
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                          <span className="truncate">{user.center}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span className="font-medium text-slate-600 uppercase tracking-tighter text-[9px]">{user.roleLabel}</span>
-                        </div>
-                      </div>
+                const headers = ['Name', 'Email', 'Center', 'Role', 'Inferred', 'Completion %', 'Done', 'Required', 'Missing Modules'];
+                const rows = data.map(u => [
+                    `"${u.name}"`,
+                    `"${u.email}"`,
+                    `"${u.center}"`,
+                    `"${u.roleLabel}"`,
+                    u.isInferred ? 'Yes' : 'No',
+                    u.percentage,
+                    u.completedCount,
+                    u.totalCount,
+                    `"${u.requirements.filter(r => !r.isDone).map(r => r.keyword).join(', ')}"`
+                ]);
 
-                      <div className="text-right">
-                        <div className={`text-[11px] font-bold mb-1 px-2 py-0.5 rounded-full border ${getPercentageColor(user.percentage)} inline-block`}>
-                          {user.percentage}%
-                        </div>
-                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-500 ${getProgressBarStyle(user.percentage)}`} 
-                            style={{ width: `${user.percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                      
-                      <ChevronRight size={16} className={`text-slate-300 transition-transform ${selectedUser?.email === user.email ? 'translate-x-1 text-indigo-400' : ''}`} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+                const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `WSE_Onboarding_Report_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
 
-            <div className="lg:col-span-1">
-              {selectedUser ? (
-                <div className="sticky top-8 space-y-4">
-                  <div className="bg-white rounded-3xl shadow-lg border border-indigo-100 overflow-hidden">
-                    <div className="p-6 text-center border-b border-slate-100">
-                      <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 border-2 border-indigo-100 shadow-inner">
-                        <UserCheck size={32} />
-                      </div>
-                      <h3 className="text-lg font-bold mb-1">{selectedUser.name}</h3>
-                      <p className="text-[10px] text-slate-400 mb-3">{selectedUser.email}</p>
-                      
-                      <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-                        <div className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-[9px] font-bold uppercase tracking-wide flex items-center gap-1">
-                          <Briefcase size={10} />
-                          {selectedUser.roleLabel}
-                        </div>
-                        <div className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-[9px] font-bold uppercase tracking-wide flex items-center gap-1">
-                          <GraduationCap size={10} />
-                          {selectedUser.center}
-                        </div>
-                      </div>
+            const filteredUsers = useMemo(() => {
+                return data.filter(u => 
+                    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    u.center.toLowerCase().includes(searchTerm.toLowerCase())
+                ).sort((a, b) => b.percentage - a.percentage);
+            }, [data, searchTerm]);
 
-                      <div className="flex items-center justify-between text-[10px] px-2 mb-2 font-bold text-slate-500 uppercase tracking-wider">
-                        <span>Onboarding Progress</span>
-                        <span>{selectedUser.completedCount}/{selectedUser.totalCount}</span>
-                      </div>
-                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2">
-                        <div 
-                          className={`h-full transition-all duration-700 ease-out ${getProgressBarStyle(selectedUser.percentage)}`} 
-                          style={{ width: `${selectedUser.percentage}%` }}
-                        />
-                      </div>
-                    </div>
+            const getPercentageColor = (p) => {
+                if (p === 100) return 'text-emerald-600 bg-emerald-50 border-emerald-100';
+                if (p > 70) return 'text-blue-600 bg-blue-50 border-blue-100';
+                if (p > 30) return 'text-amber-600 bg-amber-50 border-amber-100';
+                return 'text-slate-500 bg-slate-50 border-slate-100';
+            };
 
-                    <div className="flex bg-slate-50 border-b border-slate-100 p-1 mx-4 my-4 rounded-xl">
-                      <button 
-                        onClick={() => setActiveTab('gap')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold rounded-lg transition-all ${activeTab === 'gap' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
-                      >
-                        <ClipboardCheck size={14} />
-                        Training Gap
-                      </button>
-                      <button 
-                        onClick={() => setActiveTab('history')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold rounded-lg transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
-                      >
-                        <History size={14} />
-                        Full History
-                      </button>
-                    </div>
+            const getProgressBarStyle = (p) => {
+                if (p === 100) return 'bg-emerald-500';
+                if (p > 70) return 'bg-blue-500';
+                if (p > 30) return 'bg-amber-500';
+                return 'bg-slate-300';
+            };
 
-                    <div className="p-6 pt-0">
-                      {activeTab === 'gap' ? (
-                        <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                          {selectedUser.requirements.map((req, i) => (
-                            <div 
-                              key={i} 
-                              className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${req.isDone ? 'bg-emerald-50/30 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}
-                            >
-                              {req.isDone ? (
-                                <CheckCircle size={16} className="text-emerald-500 shrink-0" />
-                              ) : (
-                                <XCircle size={16} className="text-slate-300 shrink-0" />
-                              )}
-                              <span className={`text-[11px] font-medium ${req.isDone ? 'text-emerald-900' : 'text-slate-500'}`}>
-                                {req.keyword}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                          {selectedUser.fullHistory.length > 0 ? (
-                            selectedUser.fullHistory.map((course, i) => (
-                              <div key={i} className="bg-white border border-slate-100 p-2.5 rounded-xl shadow-sm">
-                                <h5 className="text-[11px] font-bold text-slate-800 mb-1 leading-tight">{course.name}</h5>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-[9px] text-slate-400 font-medium">
-                                    <span className="flex items-center gap-1">
-                                      <Calendar size={10} />
-                                      {course.completed}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Award size={10} />
-                                      {course.score}
-                                    </span>
-                                  </div>
-                                  <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md font-bold uppercase">
-                                    {course.progress}
-                                  </span>
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="p-2 bg-indigo-600 rounded-lg text-white">
+                                        <Icon name="shield-check" size={24} />
+                                    </div>
+                                    <h1 className="text-2xl font-bold tracking-tight">WSE Onboarding Tracker</h1>
                                 </div>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-center py-8">
-                              <p className="text-xs text-slate-400 italic">No completed records found.</p>
+                                <p className="text-slate-500">Staff Completion & Role Analysis Dashboard</p>
                             </div>
-                          )}
-                        </div>
-                      )}
+                            
+                            <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search staff or center..."
+                                        className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-64 transition-all text-sm"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <Icon name="search" size={18} className="absolute left-3 top-2.5 text-slate-400" />
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                    {data.length > 0 && (
+                                        <button 
+                                            onClick={exportProcessedData}
+                                            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-500 text-slate-600 hover:text-indigo-600 rounded-xl shadow-sm transition-all font-medium text-sm"
+                                        >
+                                            <Icon name="download" size={18} />
+                                            Export Results
+                                        </button>
+                                    )}
+                                    <label className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md cursor-pointer transition-colors font-medium text-sm">
+                                        <Icon name="file-text" size={18} />
+                                        Upload CSV
+                                        <input type="file" accept=".csv" className="hidden" onChange={(e) => processFile(e.target.files[0])} />
+                                    </label>
+                                </div>
+                            </div>
+                        </header>
+
+                        {!data.length ? (
+                            <div 
+                                onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                                onDragLeave={() => setIsDragOver(false)}
+                                onDrop={(e) => { e.preventDefault(); setIsDragOver(false); processFile(e.dataTransfer.files[0]); }}
+                                className={`mt-20 flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-3xl transition-all ${isDragOver ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white shadow-sm'}`}
+                            >
+                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
+                                    <Icon name="users" size={32} />
+                                </div>
+                                <h2 className="text-xl font-semibold mb-2 text-slate-700">No Data Uploaded</h2>
+                                <p className="text-slate-400 text-center max-w-sm mb-6">
+                                    Drag and drop your LearnUpon CSV export here to generate the onboarding reports and identify staff roles.
+                                </p>
+                                <label className="px-6 py-3 bg-white border border-slate-200 hover:border-indigo-500 text-indigo-600 rounded-2xl shadow-sm cursor-pointer transition-all font-semibold">
+                                    Browse Files
+                                    <input type="file" accept=".csv" className="hidden" onChange={(e) => processFile(e.target.files[0])} />
+                                </label>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div className="lg:col-span-2 space-y-4">
+                                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                            <h3 className="font-bold flex items-center gap-2 text-sm">
+                                                <Icon name="users" size={18} className="text-indigo-600" />
+                                                Staff List ({filteredUsers.length})
+                                            </h3>
+                                            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                                Sorted by Completion
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="divide-y divide-slate-100 max-h-[700px] overflow-y-auto">
+                                            {filteredUsers.map((user) => (
+                                                <div 
+                                                    key={user.email}
+                                                    onClick={() => { setSelectedUser(user); setActiveTab('gap'); }}
+                                                    className={`px-6 py-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors group ${selectedUser?.email === user.email ? 'bg-indigo-50/50' : ''}`}
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm shrink-0">
+                                                        {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                                    </div>
+                                                    
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-semibold truncate text-sm">{user.name}</h4>
+                                                            {user.isInferred && (
+                                                                <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter" title="Role guessed based on module history">
+                                                                    Inferred
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                                                            <span className="truncate">{user.center}</span>
+                                                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                                            <span className="font-medium text-slate-600 uppercase tracking-tighter text-[9px]">{user.roleLabel}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="text-right">
+                                                        <div className={`text-[11px] font-bold mb-1 px-2 py-0.5 rounded-full border ${getPercentageColor(user.percentage)} inline-block`}>
+                                                            {user.percentage}%
+                                                        </div>
+                                                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div 
+                                                                className={`h-full transition-all duration-500 ${getProgressBarStyle(user.percentage)}`} 
+                                                                style={{ width: `${user.percentage}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <Icon name="chevron-right" size={16} className={`text-slate-300 transition-transform ${selectedUser?.email === user.email ? 'translate-x-1 text-indigo-400' : ''}`} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="lg:col-span-1">
+                                    {selectedUser ? (
+                                        <div className="sticky top-8 space-y-4">
+                                            <div className="bg-white rounded-3xl shadow-lg border border-indigo-100 overflow-hidden">
+                                                <div className="p-6 text-center border-b border-slate-100">
+                                                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 border-2 border-indigo-100 shadow-inner">
+                                                        <Icon name="user-check" size={32} />
+                                                    </div>
+                                                    <h3 className="text-lg font-bold mb-1">{selectedUser.name}</h3>
+                                                    <p className="text-[10px] text-slate-400 mb-3">{selectedUser.email}</p>
+                                                    
+                                                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                                                        <div className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-[9px] font-bold uppercase tracking-wide flex items-center gap-1">
+                                                            <Icon name="briefcase" size={10} />
+                                                            {selectedUser.roleLabel}
+                                                        </div>
+                                                        <div className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-[9px] font-bold uppercase tracking-wide flex items-center gap-1">
+                                                            <Icon name="graduation-cap" size={10} />
+                                                            {selectedUser.center}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between text-[10px] px-2 mb-2 font-bold text-slate-500 uppercase tracking-wider">
+                                                        <span>Onboarding Progress</span>
+                                                        <span>{selectedUser.completedCount}/{selectedUser.totalCount}</span>
+                                                    </div>
+                                                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                                                        <div 
+                                                            className={`h-full transition-all duration-700 ease-out ${getProgressBarStyle(selectedUser.percentage)}`} 
+                                                            style={{ width: `${selectedUser.percentage}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex bg-slate-50 border-b border-slate-100 p-1 mx-4 my-4 rounded-xl">
+                                                    <button 
+                                                        onClick={() => setActiveTab('gap')}
+                                                        className={`flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold rounded-lg transition-all ${activeTab === 'gap' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    >
+                                                        <Icon name="clipboard-check" size={14} />
+                                                        Training Gap
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setActiveTab('history')}
+                                                        className={`flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold rounded-lg transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    >
+                                                        <Icon name="history" size={14} />
+                                                        Full History
+                                                    </button>
+                                                </div>
+
+                                                <div className="p-6 pt-0">
+                                                    {activeTab === 'gap' ? (
+                                                        <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {selectedUser.requirements.map((req, i) => (
+                                                                <div 
+                                                                    key={i} 
+                                                                    className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${req.isDone ? 'bg-emerald-50/30 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}
+                                                                >
+                                                                    {req.isDone ? (
+                                                                        <Icon name="check-circle" size={16} className="text-emerald-500 shrink-0" />
+                                                                    ) : (
+                                                                        <Icon name="x-circle" size={16} className="text-slate-300 shrink-0" />
+                                                                    )}
+                                                                    <span className={`text-[11px] font-medium ${req.isDone ? 'text-emerald-900' : 'text-slate-500'}`}>
+                                                                        {req.keyword}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {selectedUser.fullHistory.length > 0 ? (
+                                                                selectedUser.fullHistory.map((course, i) => (
+                                                                    <div key={i} className="bg-white border border-slate-100 p-2.5 rounded-xl shadow-sm">
+                                                                        <h5 className="text-[11px] font-bold text-slate-800 mb-1 leading-tight">{course.name}</h5>
+                                                                        <div className="flex items-center justify-between">
+                                                                            <div className="flex items-center gap-2 text-[9px] text-slate-400 font-medium">
+                                                                                <span className="flex items-center gap-1">
+                                                                                    <Icon name="calendar" size={10} />
+                                                                                    {course.completed}
+                                                                                </span>
+                                                                                <span className="flex items-center gap-1">
+                                                                                    <Icon name="award" size={10} />
+                                                                                    {course.score}
+                                                                                </span>
+                                                                            </div>
+                                                                            <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md font-bold uppercase">
+                                                                                {course.progress}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <div className="text-center py-8">
+                                                                    <p className="text-xs text-slate-400 italic">No completed records found.</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="bg-indigo-600 p-5 rounded-3xl text-white shadow-xl relative overflow-hidden group">
+                                                <Icon name="trending-up" className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
+                                                <h4 className="font-bold text-sm mb-1">Completion Status</h4>
+                                                <p className="text-indigo-100 text-[11px] mb-4">
+                                                    {selectedUser.percentage === 100 
+                                                        ? "Fully trained and ready!" 
+                                                        : `${100 - selectedUser.percentage}% missing for this role.`}
+                                                </p>
+                                                <button 
+                                                    onClick={exportProcessedData}
+                                                    className="flex items-center gap-2 font-bold text-xs bg-indigo-500 hover:bg-indigo-400 px-4 py-2 rounded-xl transition-colors"
+                                                >
+                                                    Download Report
+                                                    <Icon name="download" size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="sticky top-8 bg-white/50 border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center">
+                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300 shadow-sm">
+                                                <Icon name="filter" size={24} />
+                                            </div>
+                                            <h4 className="font-bold text-slate-500 text-sm">Select a Staff Member</h4>
+                                            <p className="text-slate-400 text-[11px] mt-1">Select from the list to see detailed gaps and training history.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                  </div>
-                  
-                  <div className="bg-indigo-600 p-5 rounded-3xl text-white shadow-xl relative overflow-hidden group">
-                     <TrendingUp className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
-                     <h4 className="font-bold text-sm mb-1">Completion Status</h4>
-                     <p className="text-indigo-100 text-[11px] mb-4">
-                       {selectedUser.percentage === 100 
-                         ? "Fully trained and ready!" 
-                         : `${100 - selectedUser.percentage}% missing for this role.`}
-                     </p>
-                     <button 
-                       onClick={exportProcessedData}
-                       className="flex items-center gap-2 font-bold text-xs bg-indigo-500 hover:bg-indigo-400 px-4 py-2 rounded-xl transition-colors"
-                     >
-                        Download Report
-                        <Download size={14} />
-                     </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="sticky top-8 bg-white/50 border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300 shadow-sm">
-                    <Filter size={24} />
-                  </div>
-                  <h4 className="font-bold text-slate-500 text-sm">Select a Staff Member</h4>
-                  <p className="text-slate-400 text-[11px] mt-1">Select from the list to see detailed gaps and training history.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 10px;
-        }
-      `}</style>
-    </div>
-  );
-};
+                    <style>{`
+                        .custom-scrollbar::-webkit-scrollbar {
+                            width: 4px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-track {
+                            background: transparent;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-thumb {
+                            background: #e2e8f0;
+                            border-radius: 10px;
+                        }
+                    `}</style>
+                </div>
+            );
+        };
 
-export default App;
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
