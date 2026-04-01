@@ -98,11 +98,16 @@
                     {match: 'C05', label: 'C05. Evolution of Method'},
                     {match: 'C06', label: 'C06. Competitive Landscape'},
                     {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
-                    'Learner Psychology', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09',
-                    'Encounter Assessment', 'Encounter Structure', 'Encounter Planning', 'Encounter Feedback',
-                    'Complementary Class Structure', 'Complementary Class Planning', 'Complementary Class Teaching', 'Complementary Class Feedback'
+                    {match: 'Learner Psychology', label: 'Learner Psychology'},
+                    {match: 'T02', label: 'T02. Graded Language'},
+                    {match: 'T03', label: 'T03. Concept Checking'},
+                    {match: 'T05', label: 'T05. Instructions and ICQs'},
+                    {match: 'T06', label: 'T06. Correction Techniques'},
+                    {match: 'T07', label: 'T07. Eliciting Techniques'},
+                    {match: 'T08', label: 'T08. Technology in Social Clubs'},
+                    {match: 'T09', label: 'T09. Personalized Feedback'}
                 ],
-                inference: ['Encounter', 'Social Club', 'T08', 'T09', 'Complementary']
+                inference: ['T08', 'T09', 'Learner Psychology']
             },
             COACH: {
                 id: 'Coach',
@@ -115,12 +120,24 @@
                     {match: 'C05', label: 'C05. Evolution of Method'},
                     {match: 'C06', label: 'C06. Competitive Landscape'},
                     {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
-                    'Learner Psychology', 'T02', 'T03', 'T05', 'T06', 'T07', 'Welcome Call',
-                    'First Lesson', 'Study Planner', 'Advising Sessions', 'Motivating Students',
-                    'Customer Service', 'Follow Up', 'Phone Call', 'Booking Efficacy',
-                    {match: 'Complaints', label: 'Dealing with Complaints'}
+                    {match: 'Learner Psychology', label: 'Learner Psychology'},
+                    {match: 'T02', label: 'T02. Graded Language'},
+                    {match: 'T03', label: 'T03. Concept Checking'},
+                    {match: 'T05', label: 'T05. Instructions and ICQs'},
+                    {match: 'T06', label: 'T06. Correction Techniques'},
+                    {match: 'T07', label: 'T07. Eliciting Techniques'},
+                    {match: 'Advising Sessions', label: 'Advising Sessions Training'},
+                    {match: 'Booking Efficacy', label: 'Booking Efficacy'},
+                    {match: 'Complaints', label: 'Dealing with Complaints'},
+                    {match: 'First Lesson', label: 'First Lesson Training'},
+                    {match: 'Phone Call', label: 'Phone Call Techniques'},
+                    {match: 'Follow Up', label: 'Student Follow Up'},
+                    {match: 'Study Planner', label: 'Study Planner'},
+                    {match: 'Welcome Call', label: 'Welcome Call Training'},
+                    {match: 'Welcome Session', label: 'Outstanding Welcome Session'},
+                    {match: 'Exceptional Customer', label: 'Exceptional Customer Service'}
                 ],
-                inference: ['Welcome Call', 'Study Planner', 'Booking Efficacy', 'Motivating']
+                inference: ['Welcome Call', 'Booking Efficacy', 'Advising Sessions', 'Follow Up']
             },
             CONSULTANT: {
                 id: 'Consultant',
@@ -144,10 +161,11 @@
                     {match: 'S09', label: 'S09. Solution and Closing'},
                     {match: 'S10', label: 'S10. Treating Objections'},
                     {match: 'S11', label: 'S11. Making Most of CRM'},
-                    'Renewals',
-                    {match: 'Complaints', label: 'Dealing with Complaints'}
+                    {match: 'Renewals', label: 'Renewals'},
+                    {match: 'Complaints', label: 'Dealing with Complaints'},
+                    {match: 'Study Planner', label: 'Study Planner'}
                 ],
-                inference: ['S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'Production Presentation']
+                inference: ['S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11']
             },
             CENTER_DIRECTOR: {
                 id: 'Center Director',
@@ -160,15 +178,28 @@
                     {match: 'C05', label: 'C05. Evolution of Method'},
                     {match: 'C06', label: 'C06. Competitive Landscape'},
                     {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
+                    {match: 'Coaching Techniques', label: 'Coaching Techniques'},
+                    {match: 'Complaints', label: 'Dealing with Complaints'},
+                    {match: 'Delegating', label: 'Delegating Effectively'},
+                    {match: 'Quality Control', label: 'Quality Control'},
+                    {match: 'Renewals', label: 'Renewals'},
                     {match: 'S01', label: 'S01. Needs-based Sales Intro'},
                     {match: 'S02', label: 'S02. Features and Benefits'},
                     {match: 'S03', label: 'S03. Why People Buy'},
                     {match: 'S04', label: 'S04. Buyer Personas'},
-                    'GROW Model', 'KPIs', 'Delegating', '5Ps',
-                    'Time Management', 'Recruitment', 'Timetabling', 'Class Planning',
-                    'BI Tools', 'Action Planning', 'Quality Controller'
+                    {match: 'S05', label: 'S05. Building Trust'},
+                    {match: 'S06', label: 'S06. Active Listening'},
+                    {match: 'S07', label: 'S07. Push and Pull Comms'},
+                    {match: 'S08', label: 'S08. The Needs Analysis'},
+                    {match: 'S09', label: 'S09. Solution and Closing'},
+                    {match: 'S10', label: 'S10. Treating Objections'},
+                    {match: 'S11', label: 'S11. Making Most of CRM'},
+                    {match: 'S12', label: 'S12. Sales Management'},
+                    {match: 'SOP for Meetings', label: 'SOP for Meetings'},
+                    {match: '5Ps', label: '5Ps of Effective Meetings'},
+                    {match: 'Time Management', label: 'Time Management'}
                 ],
-                inference: ['GROW Model', 'Sales Funnel', 'KPIs', 'Quality Controller']
+                inference: ['S12', 'SOP for Meetings']
             },
             SERVICE_MANAGER: {
                 id: 'Service Manager',
@@ -181,16 +212,35 @@
                     {match: 'C05', label: 'C05. Evolution of Method'},
                     {match: 'C06', label: 'C06. Competitive Landscape'},
                     {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
+                    {match: 'Learner Psychology', label: 'Learner Psychology'},
+                    {match: 'T02', label: 'T02. Graded Language'},
+                    {match: 'T03', label: 'T03. Concept Checking'},
+                    {match: 'T05', label: 'T05. Instructions and ICQs'},
+                    {match: 'T06', label: 'T06. Correction Techniques'},
+                    {match: 'T07', label: 'T07. Eliciting Techniques'},
+                    {match: 'T08', label: 'T08. Technology in Social Clubs'},
+                    {match: 'T09', label: 'T09. Personalized Feedback'},
+                    {match: 'Advising Sessions', label: 'Advising Sessions Training'},
+                    {match: 'Booking Efficacy', label: 'Booking Efficacy'},
+                    {match: 'Class Planning', label: 'Class Planning'},
+                    {match: 'Coaching Techniques', label: 'Coaching Techniques'},
+                    {match: 'Complaints', label: 'Dealing with Complaints'},
+                    {match: 'Delegating', label: 'Delegating Effectively'},
+                    {match: 'Driving Progress', label: 'Driving Progress'},
+                    {match: 'First Lesson', label: 'First Lesson Training'},
+                    {match: 'Phone Call', label: 'Phone Call Techniques'},
+                    {match: 'Quality Control', label: 'Quality Control'},
+                    {match: 'Renewals', label: 'Renewals'},
                     {match: 'S01', label: 'S01. Needs-based Sales Intro'},
                     {match: 'S02', label: 'S02. Features and Benefits'},
                     {match: 'S03', label: 'S03. Why People Buy'},
                     {match: 'S04', label: 'S04. Buyer Personas'},
-                    'Quality Control', 'Training and Development',
-                    'Observations', 'Coaching Techniques', '5Ps', 'Delegating', 'Time Management',
-                    'Timetabling', 'Recruitment', 'Class Planning', 'BI Tools', 'Action Planning',
-                    'Customer Satisfaction Survey'
+                    {match: 'Study Planner', label: 'Study Planner'},
+                    {match: '5Ps', label: '5Ps of Effective Meetings'},
+                    {match: 'Time Management', label: 'Time Management'},
+                    {match: 'Welcome Call', label: 'Welcome Call Training'}
                 ],
-                inference: ['Timetabling Service Staff', 'Biannual Action Planning', 'Customer Satisfaction Survey']
+                inference: ['Driving Progress', 'Class Planning']
             }
         };
 
@@ -202,6 +252,8 @@
             const [activeTab, setActiveTab] = useState('gap');
             const [error, setError] = useState(null);
             const [isProcessing, setIsProcessing] = useState(false);
+            const [roleFilter, setRoleFilter] = useState('all');
+            const [sortBy, setSortBy] = useState('completion-desc');
 
             const parseCSVRow = (row) => {
                 const result = [];
@@ -322,13 +374,13 @@
 
                             const requirements = roleConfig.keywords.map(kw => {
                                 const match = typeof kw === 'string' ? kw : kw.match;
-                                const label = typeof kw === 'string' ? kw : kw.label;
+                                const label = typeof kw === 'string' ? kw : (kw.label || kw.match);
                                 const isDone = completedCourseNames.some(cn => cn.includes(match.toLowerCase()));
                                 return { keyword: label, isDone };
                             });
 
                             const completedCount = requirements.filter(r => r.isDone).length;
-                            const percentage = Math.round((completedCount / requirements.length) * 100);
+                            const percentage = requirements.length > 0 ? Math.round((completedCount / requirements.length) * 100) : 100;
 
                             return {
                                 ...user,
@@ -390,13 +442,37 @@
                 document.body.removeChild(link);
             };
 
+            const tiers = useMemo(() => {
+                const completed = data.filter(u => u.percentage === 100).length;
+                const onTrack = data.filter(u => u.percentage > 70 && u.percentage < 100).length;
+                const needsAttention = data.filter(u => u.percentage >= 30 && u.percentage <= 70).length;
+                const critical = data.filter(u => u.percentage < 30).length;
+                return { completed, onTrack, needsAttention, critical };
+            }, [data]);
+
+            const availableRoles = useMemo(() => {
+                const roles = [...new Set(data.map(u => u.roleLabel))].sort();
+                return roles;
+            }, [data]);
+
             const filteredUsers = useMemo(() => {
-                return data.filter(u => 
-                    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    u.center.toLowerCase().includes(searchTerm.toLowerCase())
-                ).sort((a, b) => b.percentage - a.percentage);
-            }, [data, searchTerm]);
+                let result = data.filter(u => {
+                    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        u.center.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesRole = roleFilter === 'all' || u.roleLabel === roleFilter;
+                    return matchesSearch && matchesRole;
+                });
+
+                switch (sortBy) {
+                    case 'completion-asc': result.sort((a, b) => a.percentage - b.percentage); break;
+                    case 'completion-desc': result.sort((a, b) => b.percentage - a.percentage); break;
+                    case 'name-asc': result.sort((a, b) => a.name.localeCompare(b.name)); break;
+                    case 'center': result.sort((a, b) => a.center.localeCompare(b.center) || b.percentage - a.percentage); break;
+                    default: result.sort((a, b) => b.percentage - a.percentage);
+                }
+                return result;
+            }, [data, searchTerm, roleFilter, sortBy]);
 
             const getPercentageColor = (p) => {
                 if (p === 100) return 'text-emerald-600 bg-emerald-50 border-emerald-100';
@@ -493,7 +569,69 @@
                                 <p className="text-slate-400 mt-2">Parsing roles and module history.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
+                            <div className="space-y-6 animate-in fade-in duration-500">
+                                {/* Summary Tier Cards */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="bg-white rounded-2xl border border-emerald-100 p-4 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completed</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-emerald-600">{tiers.completed}</div>
+                                        <div className="text-[10px] text-slate-400 mt-1">100% complete</div>
+                                    </div>
+                                    <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">On Track</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-blue-600">{tiers.onTrack}</div>
+                                        <div className="text-[10px] text-slate-400 mt-1">71 - 99%</div>
+                                    </div>
+                                    <div className="bg-white rounded-2xl border border-amber-100 p-4 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Needs Attention</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-amber-600">{tiers.needsAttention}</div>
+                                        <div className="text-[10px] text-slate-400 mt-1">30 - 70%</div>
+                                    </div>
+                                    <div className="bg-white rounded-2xl border border-red-100 p-4 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Critical</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-red-500">{tiers.critical}</div>
+                                        <div className="text-[10px] text-slate-400 mt-1">Below 30%</div>
+                                    </div>
+                                </div>
+
+                                {/* Filter & Sort Controls */}
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <select
+                                        value={roleFilter}
+                                        onChange={(e) => setRoleFilter(e.target.value)}
+                                        className="px-3 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                    >
+                                        <option value="all">All Roles</option>
+                                        {availableRoles.map(role => (
+                                            <option key={role} value={role}>{role}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="px-3 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                    >
+                                        <option value="completion-desc">Completion: High to Low</option>
+                                        <option value="completion-asc">Completion: Low to High</option>
+                                        <option value="name-asc">Name: A to Z</option>
+                                        <option value="center">Center</option>
+                                    </select>
+                                    <span className="text-xs text-slate-400 ml-auto">{filteredUsers.length} of {data.length} staff shown</span>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-2 space-y-4">
                                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                                         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -501,9 +639,6 @@
                                                 <Icon name="users" size={18} className="text-indigo-600" />
                                                 Staff List ({filteredUsers.length})
                                             </h3>
-                                            <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                                Sorted by Completion
-                                            </div>
                                         </div>
                                         
                                         <div className="divide-y divide-slate-100 max-h-[700px] overflow-y-auto">
@@ -607,8 +742,8 @@
                                                     {activeTab === 'gap' ? (
                                                         <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                                                             {selectedUser.requirements.map((req, i) => (
-                                                                <div 
-                                                                    key={i} 
+                                                                <div
+                                                                    key={i}
                                                                     className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${req.isDone ? 'bg-emerald-50/30 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}
                                                                 >
                                                                     {req.isDone ? (
@@ -682,6 +817,7 @@
                                         </div>
                                     )}
                                 </div>
+                            </div>
                             </div>
                         )}
                     </div>
