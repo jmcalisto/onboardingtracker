@@ -8,10 +8,29 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS (pinned version) -->
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        indigo: {
+                            50:  '#e6eef4',
+                            100: '#ccdde9',
+                            200: '#99bbd3',
+                            400: '#3380aa',
+                            500: '#004d80',
+                            600: '#003359',
+                            700: '#002644',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons (pinned version) -->
+    <script src="https://unpkg.com/lucide@0.309.0"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
     <div id="root"></div>
@@ -58,13 +77,27 @@
             GLOBAL_BASELINE: {
                 id: 'Baseline',
                 label: 'All Staff',
-                keywords: ['C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types']
+                keywords: [
+                    {match: 'C01', label: 'C01. Origins and History'},
+                    {match: 'C02', label: 'C02. Our Defining Values'},
+                    {match: 'C03', label: 'C03. Key Features'},
+                    {match: 'C04', label: 'C04. Learning Framework'},
+                    {match: 'C05', label: 'C05. Evolution of Method'},
+                    {match: 'C06', label: 'C06. Competitive Landscape'},
+                    {match: 'C07', label: 'C07. Customer Journey Touchpoints'}
+                ]
             },
             TEACHER: {
                 id: 'Teacher',
                 label: 'Teacher',
                 keywords: [
-                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    {match: 'C01', label: 'C01. Origins and History'},
+                    {match: 'C02', label: 'C02. Our Defining Values'},
+                    {match: 'C03', label: 'C03. Key Features'},
+                    {match: 'C04', label: 'C04. Learning Framework'},
+                    {match: 'C05', label: 'C05. Evolution of Method'},
+                    {match: 'C06', label: 'C06. Competitive Landscape'},
+                    {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
                     'Learner Psychology', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09',
                     'Encounter Assessment', 'Encounter Structure', 'Encounter Planning', 'Encounter Feedback',
                     'Complementary Class Structure', 'Complementary Class Planning', 'Complementary Class Teaching', 'Complementary Class Feedback'
@@ -75,10 +108,17 @@
                 id: 'Coach',
                 label: 'Coach',
                 keywords: [
-                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
+                    {match: 'C01', label: 'C01. Origins and History'},
+                    {match: 'C02', label: 'C02. Our Defining Values'},
+                    {match: 'C03', label: 'C03. Key Features'},
+                    {match: 'C04', label: 'C04. Learning Framework'},
+                    {match: 'C05', label: 'C05. Evolution of Method'},
+                    {match: 'C06', label: 'C06. Competitive Landscape'},
+                    {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
                     'Learner Psychology', 'T02', 'T03', 'T05', 'T06', 'T07', 'Welcome Call',
                     'First Lesson', 'Study Planner', 'Advising Sessions', 'Motivating Students',
-                    'Customer Service', 'Follow Up', 'Phone Call', 'Booking Efficacy', 'Complaints'
+                    'Customer Service', 'Follow Up', 'Phone Call', 'Booking Efficacy',
+                    {match: 'Complaints', label: 'Dealing with Complaints'}
                 ],
                 inference: ['Welcome Call', 'Study Planner', 'Booking Efficacy', 'Motivating']
             },
@@ -86,9 +126,26 @@
                 id: 'Consultant',
                 label: 'Consultant',
                 keywords: [
-                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-                    'S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11',
-                    'Production Presentation', 'Second Appointment', 'Referrals', 'Renewals', 'Complaints'
+                    {match: 'C01', label: 'C01. Origins and History'},
+                    {match: 'C02', label: 'C02. Our Defining Values'},
+                    {match: 'C03', label: 'C03. Key Features'},
+                    {match: 'C04', label: 'C04. Learning Framework'},
+                    {match: 'C05', label: 'C05. Evolution of Method'},
+                    {match: 'C06', label: 'C06. Competitive Landscape'},
+                    {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
+                    {match: 'S01', label: 'S01. Needs-based Sales Intro'},
+                    {match: 'S02', label: 'S02. Features and Benefits'},
+                    {match: 'S03', label: 'S03. Why People Buy'},
+                    {match: 'S04', label: 'S04. Buyer Personas'},
+                    {match: 'S05', label: 'S05. Building Trust'},
+                    {match: 'S06', label: 'S06. Active Listening'},
+                    {match: 'S07', label: 'S07. Push and Pull Comms'},
+                    {match: 'S08', label: 'S08. The Needs Analysis'},
+                    {match: 'S09', label: 'S09. Solution and Closing'},
+                    {match: 'S10', label: 'S10. Treating Objections'},
+                    {match: 'S11', label: 'S11. Making Most of CRM'},
+                    'Renewals',
+                    {match: 'Complaints', label: 'Dealing with Complaints'}
                 ],
                 inference: ['S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'Production Presentation']
             },
@@ -96,9 +153,19 @@
                 id: 'Center Director',
                 label: 'Center Director',
                 keywords: [
-                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-                    'S01', 'S02', 'S03', 'S04', 'GROW Model', 'KPIs', 'Delegating', '5Ps', 
-                    'Time Management', 'Recruitment', 'Timetabling', 'Class Planning', 
+                    {match: 'C01', label: 'C01. Origins and History'},
+                    {match: 'C02', label: 'C02. Our Defining Values'},
+                    {match: 'C03', label: 'C03. Key Features'},
+                    {match: 'C04', label: 'C04. Learning Framework'},
+                    {match: 'C05', label: 'C05. Evolution of Method'},
+                    {match: 'C06', label: 'C06. Competitive Landscape'},
+                    {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
+                    {match: 'S01', label: 'S01. Needs-based Sales Intro'},
+                    {match: 'S02', label: 'S02. Features and Benefits'},
+                    {match: 'S03', label: 'S03. Why People Buy'},
+                    {match: 'S04', label: 'S04. Buyer Personas'},
+                    'GROW Model', 'KPIs', 'Delegating', '5Ps',
+                    'Time Management', 'Recruitment', 'Timetabling', 'Class Planning',
                     'BI Tools', 'Action Planning', 'Quality Controller'
                 ],
                 inference: ['GROW Model', 'Sales Funnel', 'KPIs', 'Quality Controller']
@@ -107,10 +174,20 @@
                 id: 'Service Manager',
                 label: 'Service Manager',
                 keywords: [
-                    'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'Class Types',
-                    'S01', 'S02', 'S03', 'S04', 'Quality Control', 'Training and Development', 
-                    'Observations', 'Coaching Techniques', '5Ps', 'Delegating', 'Time Management', 
-                    'Timetabling', 'Recruitment', 'Class Planning', 'BI Tools', 'Action Planning', 
+                    {match: 'C01', label: 'C01. Origins and History'},
+                    {match: 'C02', label: 'C02. Our Defining Values'},
+                    {match: 'C03', label: 'C03. Key Features'},
+                    {match: 'C04', label: 'C04. Learning Framework'},
+                    {match: 'C05', label: 'C05. Evolution of Method'},
+                    {match: 'C06', label: 'C06. Competitive Landscape'},
+                    {match: 'C07', label: 'C07. Customer Journey Touchpoints'},
+                    {match: 'S01', label: 'S01. Needs-based Sales Intro'},
+                    {match: 'S02', label: 'S02. Features and Benefits'},
+                    {match: 'S03', label: 'S03. Why People Buy'},
+                    {match: 'S04', label: 'S04. Buyer Personas'},
+                    'Quality Control', 'Training and Development',
+                    'Observations', 'Coaching Techniques', '5Ps', 'Delegating', 'Time Management',
+                    'Timetabling', 'Recruitment', 'Class Planning', 'BI Tools', 'Action Planning',
                     'Customer Satisfaction Survey'
                 ],
                 inference: ['Timetabling Service Staff', 'Biannual Action Planning', 'Customer Satisfaction Survey']
@@ -244,8 +321,10 @@
                             const completedCourseNames = completedCourses.map(c => c.name.toLowerCase());
 
                             const requirements = roleConfig.keywords.map(kw => {
-                                const isDone = completedCourseNames.some(cn => cn.includes(kw.toLowerCase()));
-                                return { keyword: kw, isDone };
+                                const match = typeof kw === 'string' ? kw : kw.match;
+                                const label = typeof kw === 'string' ? kw : kw.label;
+                                const isDone = completedCourseNames.some(cn => cn.includes(match.toLowerCase()));
+                                return { keyword: label, isDone };
                             });
 
                             const completedCount = requirements.filter(r => r.isDone).length;
